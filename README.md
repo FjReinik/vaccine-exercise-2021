@@ -1,70 +1,115 @@
-# Getting Started with Create React App
+# vaccination-exercise
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+THL has ordered us to create a vaccination database which contains information about vaccine orders and vaccinations.
 
-## Available Scripts
+We have received files which contains the base data for the application
 
-In the project directory, you can run:
+The Orders are in different files named by the manufacturer of a vaccine.
 
-### `yarn start`
+Injections must be used in 30 days after the arrival of the bottle.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+[name].source "Zerpfy"|"Antiqua"|"SolarBuddhica"
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+The source file has one json item per line.
 
-### `yarn test`
+## Format of an order
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```json
+{
+  "id": "universal identifier of the order",
+  "healthCareDistrict": "HYKS|KYS|OYS|TAYS|TYKS",
+  "orderNumber": "Rising number of the order",
+  "responsiblePerson": "Name of the person who is responsible to track the delivery",
+  "injections": "number of injections available in a bottle",
+  "arrived": "ISO datetime",
+  "vaccine": "Zerpfy|Antiqua|SolarBuddhica"
+}
+```
 
-### `yarn build`
+## Example order
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+SolarBuddhica.source:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```json
+{
+  "id": "2b00bc58-3faf-4d06-bb11-ef47aad8086a",
+  "orderNumber": 4194,
+  "responsiblePerson": "Arhippa Pihkala",
+  "healthCareDistrict": "TYKS",
+  "vaccine": "SolarBuddhica",
+  "injections": 6,
+  "arrived": "2021-04-07T01:10:30.696768Z"
+}
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Vaccination structure
 
-### `yarn eject`
+vaccinations.source is a json array which has information of all the vaccinations currently made
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+The datastructure is
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```json
+{
+  "vaccination-id": "universal identifier of the vaccination",
+  "gender": "male|female|nonbinary",
+  "sourceBottle": "universal identifier of the bottle",
+  "injected": "Datetime"
+}
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Example vaccination
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```json
+{"vaccination-id":"e28a0fb5-3956-4ba6-827f-4dcae64e4cda",
+"sourceBottle":"2b00bc58-3faf-4d06-bb11-ef47aad8086a",
+"gender":"nonbinary",
+"vaccinationDate":"2021-04-08T11:00:20.740994Z"}
+```
 
-## Learn More
+# The exercise
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Make a web application for presenting some interesting data about the vaccinations.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Return the exercise as a link to your GitHub repository.
 
-### Code Splitting
+## Technology choices
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Feel free to use whatever you think is best for this kind of stuff.
 
-### Analyzing the Bundle Size
+React/Vue.js/Angular or something else for the web frontend. All is fine.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Swift/Kotlin/React Native/Flutter etc. or a mobile technology of your choice.
 
-### Making a Progressive Web App
+Node.js/Clojure/Go/Rust/Kotlin or something else for the backend.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Some kind of database could be useful for aggregating the data. MySQL/Postgresql/Oracle/FreemanDB or maybe noSQL?
 
-### Advanced Configuration
+## List of interesting things
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+For given day like 2021-04-12T11:10:06
 
-### Deployment
+* How many orders and vaccines have arrived total?
+* How many of the vaccinations have been used?
+* How many orders/vaccines per producer?
+* How many bottles have expired on the given day (remember a bottle expires 30 days after arrival)
+* How many vaccines expired before the usage -> remember to decrease used injections from the expired bottle
+* How many vaccines are left to use?
+* How many vaccines are going to expire in the next 10 days?
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Perhaps there is some other data which could tell us some interesting things?
 
-### `yarn build` fails to minify
+## Some numbers to help you
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+* Total number of orders 5000
+* Vaccinations done 7000
+* "2021-03-20" arrived 61 orders.
+* When counted from "2021-04-12T11:10:06.473587Z" 12590 vaccines expired before usage (injections in the expiring bottles 17423
+  and injections done from the expired bottles 4833)
+
+## Some tips
+
+* You don't need to do all these for a good result.
+* You can make graphs from the data but textual representation suffice also.
+* Think about the tests for your application.
+* You can test the frontend also
+* Add README.md which have instructions how to build/run your software and how to run the tests.
