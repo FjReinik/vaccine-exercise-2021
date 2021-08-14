@@ -1,6 +1,12 @@
 # vaccination-exercise
 
-Issues with 
+requires postgres setup
+
+
+Sql creates have been provided - the setup of the database is left to the user ( due to mac/win differences - though that could be resolved with a postgres set up in a docker container )
+
+
+then needs only a node instance for api calls (yarn/npm start in node-server folder)
 
 # The exercise
 

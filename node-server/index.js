@@ -40,31 +40,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
-var knexfile_1 = require("knexfile");
+var knexfile_1 = require("./knexfile");
 var app = express_1.default();
 var port = process.env.PORT || 9000;
 var conn = knexfile_1.Connect();
-app.get('/getAll', function (request, response) { return __awaiter(void 0, void 0, void 0, function () {
-    var getall, error_1;
+app.get('/', function(request, response) {
+    response.send('it works?');
+});
+app.get('/getUptoDate/:date', function(request, response) {
+    return __awaiter(void 0, void 0, void 0, function() {
+        var fromDate, toDate;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                console.log("" + process.env.DB_PASSWORD);
-                console.log("connection");
-                _a.label = 1;
+                fromDate = new Date(request.params.date);
+                toDate = new Date(request.params.date);
+                toDate.setDate(fromDate.getDate() + 1);
+                console.log(toDate);
+                console.log(fromDate);
+                return [4 /*yield*/, conn.select()
+                    .from('vaccine_order')
+                    .whereBetween('arrived', [fromDate, toDate])
+                    .then(function(result) {
+                        console.log(result);
+                        response.send(result);
+                    })];
             case 1:
-                _a.trys.push([1, 3, , 4]);
-                return [4 /*yield*/, conn.raw("\n\t\t\t\tselect *\n\t\t\t\tfrom vaccine_order\n\t\t\t\t")];
-            case 2:
-                getall = (_a.sent()).getall;
-                response.json([JSON.parse(getall[0].data)]);
-                console.log("response" + response.json([JSON.parse(getall[0].data)]));
-                return [3 /*break*/, 4];
-            case 3:
-                error_1 = _a.sent();
-                console.log("Vaccine orders are empty, initialize database");
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                _a.sent();
+                return [2 /*return*/];
         }
     });
 }); });
