@@ -11,6 +11,8 @@ pom.xml.asc
 .hgignore
 .hg/
 /.idea/
+*.lock
+package-lock.json
 /vaccination-exercise.iml
 node_modules
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
