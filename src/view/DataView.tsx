@@ -5,7 +5,9 @@ import { QueryContainer } from '../components/QueryContainer'
 export const Dataview: React.FunctionComponent = () => {
 	return (
 		<Container>
-			{/*form josta sitetn tulle jotain*/ }
+			{/*form -> onSubmitilla  queryt matkaan - filtteröintiä tässä vaiheessa? checkboxeilla? 
+			Annetaan pvm/filtteröinti propseille? ja childeille tilamuuttujina?*/ }
+
 
 		</Container>
 	);

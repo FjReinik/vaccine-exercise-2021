@@ -40,58 +40,35 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
-var knexfile_1 = require("./knexfile");
+var knex_1 = __importDefault(require("knex"));
 var app = express_1.default();
 var port = process.env.PORT || 9000;
-var conn = knexfile_1.Connect();
-app.get('/getAllOrders', function(request, response) {
-    return __awaiter(void 0, void 0, void 0, function() {
-        return __generator(this, function(_a) {
-            switch(_a.label) {
-                case 0: return [4 /*yield*/, conn.select()
-                    .from('vaccine_order')
-                    .then(function(result) {
-                        response.send(result);
-                    })
-                    .catch(function(error) {
-                        console.log(error);
-                    })];
-                case 1:
-                    _a.sent();
-                    return [2 /*return*/];
-            }
-        });
-});
-});
-app.get('/getAllVaccineDoses', function(request, response) {
-    return __awaiter(void 0, void 0, void 0, function() {
-        return __generator(this, function(_a) {
-            switch(_a.label) {
-                case 0: return [4 /*yield*/, conn.count('injections')
-                    .from('vaccine_event')
-                    .then(function(result) {
-                        response.send(result);
-                    })
-                    .catch(function(error) {
-                        console.log(error);
-                    })];
-                case 1:
-                    _a.sent();
-                    return [2 /*return*/];
-            }
-        });
+var Connect = function() {
+    return knex_1.default({
+        client: "pg",
+        connection: {
+            database: "vaccinedb",
+            user: "postgres",
+            password: "admin",
+            host: "localhost",
+            port: Number("" + process.env.PG_PORT || 5432),
+        },
+        pool: { min: 0, max: 100 },
+        acquireConnectionTimeout: 10000,
     });
-});
+};
+var conn = Connect();
+//get the count of orders recieved during a given day
 app.get('/getSingleDateArrival/:date', function(request, response) {
     return __awaiter(void 0, void 0, void 0, function() {
         var fromDate, toDate;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                fromDate = (request.params.date + 'T00:00:00Z');
-                toDate = (request.params.date + 'T23:59:59Z');
-                return [4 /*yield*/, conn.select()
-                    .from('vaccine_order')
+        return __generator(this, function(_a) {
+            switch(_a.label) {
+                case 0:
+                    fromDate = (request.params.date + 'T00:00:00Z');
+                    toDate = (request.params.date + 'T23:59:59Z');
+                    return [4 /*yield*/, conn.select()
+                        .from('vaccine_order')
                     .whereBetween('arrived', [fromDate, toDate])
                     .then(function(result) {
                         response.send(result);
@@ -106,48 +83,73 @@ app.get('/getSingleDateArrival/:date', function(request, response) {
     });
 });
 });
-//For given day like 2021-04-12T11:10:06
-// How many orders and vaccines have arrived total?
+//get the count of vaccinations done during a day
+app.get('/getSingleDateVaccination/:date', function(request, response) {
+    return __awaiter(void 0, void 0, void 0, function() {
+        var fromDate, toDate;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                fromDate = (request.params.date + 'T00:00:00Z');
+                toDate = (request.params.date + 'T23:59:59Z');
+                return [4 /*yield*/, conn.select()
+                    .from('vaccine_event')
+                    .whereBetween('vaccinationDate', [fromDate, toDate])
+                    .then(function(result) {
+                        response.send(result);
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    })];
+            case 1:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+});
+});
+// How many orders and vaccines have arrived total on a given day
 app.get('/getOrderAndVaccines/:date', function(request, response) {
     return __awaiter(void 0, void 0, void 0, function() {
         var yearStart, toDate;
-        return __generator(this, function(_a) {
-            switch(_a.label) {
-                case 0:
-                    yearStart = new Date('2021-01-01T00:00:00Z');
-                    toDate = (request.params.date + 'T23:59:59Z');
-                    return [4 /*yield*/, conn.count({ orders: 'orderNumber' })
+    return __generator(this, function(_a) {
+        switch(_a.label) {
+            case 0:
+                yearStart = new Date('2021-01-01T00:00:00Z');
+                toDate = (request.params.date + 'T23:59:59Z');
+                return [4 /*yield*/, conn.count({ orders: 'orderNumber' })
                         .sum({ doses: 'injections' })
                         .from('vaccine_order')
                         .whereBetween('arrived', [yearStart, toDate])
-                        .then(function(result) {
-                            response.send(result);
-                        })
-                        .catch(function(error) {
-                            console.log(error);
-                        })];
-                case 1:
-                    _a.sent();
-                    return [2 /*return*/];
-            }
-        });
+                    .then(function(result) {
+                        response.send(result);
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    })];
+            case 1:
+                _a.sent();
+                return [2 /*return*/];
+        }
     });
 });
+});
+//Returns orders and doses of vaccine, grouped by vaccine manufacturer, from year start to end of given date
 app.get('/getOrderAndVaccinesByProducer/:date', function(request, response) {
     return __awaiter(void 0, void 0, void 0, function() {
         var yearStart, toDate;
-        return __generator(this, function(_a) {
-            switch(_a.label) {
-                case 0:
-                    yearStart = new Date('2021-01-01T00:00:00Z');
-                    toDate = (request.params.date + 'T23:59:59Z');
-                    return [4 /*yield*/, conn.select('vaccine')
+    return __generator(this, function(_a) {
+        switch(_a.label) {
+            case 0:
+                yearStart = new Date('2021-01-01T00:00:00Z');
+                toDate = (request.params.date + 'T23:59:59Z');
+                return [4 /*yield*/, conn.select('vaccine')
                         .count({ orders: 'orderNumber' })
                         .sum({ doses: 'injections' })
                         .from('vaccine_order')
                         .groupBy('vaccine')
                         .whereBetween('arrived', [yearStart, toDate])
-                        .then(function(result) {
+                    .then(function(result) {
                         response.send(result);
                         })
                     .catch(function(error) {
@@ -160,14 +162,22 @@ app.get('/getOrderAndVaccinesByProducer/:date', function(request, response) {
     });
 }); });
 // How many of the vaccinations have been used?
-// * How many orders/vaccines per producer?
+//joinia
 // How many bottles have expired on the given day (remember a bottle expires 30 days after arrival)
+//Joinia
 // How many vaccines expired before the usage -> remember to decrease used injections from the expired bottle
+//joinia
 // How many vaccines are left to use?
+//joinia
 // How many vaccines are going to expire in the next 10 days?
+//joinia
+// Most popular day of the week for vaccinations? - Seems like data that has some utility
+//
 /*
-app.get('/getBetweenDate/:date', async (request, response) => {
-    const fromDate = new Date(request.params.date)
+** vaccinations/other data between two given dates?
+**
+app.get('/getBetweenDate/:fromDate/:toDate', async (request, response) => {
+    const fromDate = new Date(request.params.fromDate)
     const toDate = new Date(request.params.toDate)
     console.log(toDate);
     console.log(fromDate);
@@ -185,10 +195,7 @@ app.get('/getBetweenDate/:date', async (request, response) => {
 ## List of interesting things
 
 
-
 Perhaps there is some other data which could tell us some interesting things?
-
-## Some numbers to help you
 
 * Total number of orders 5000
 * Vaccinations done 7000

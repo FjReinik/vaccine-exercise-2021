@@ -1,10 +1,28 @@
 import express from "express";
-import { Connect } from "knexfile"
+import Knex from "knex";
 
 
 const app = express()
 const port = process.env.PORT || 9000
+
+//brought knex to index.tsx due to issues with compiling the require directory
+const Connect = () => {
+	return Knex({
+		client: "pg",
+		connection: {
+			database: "vaccinedb",
+			user: "postgres",
+			password: "admin",
+			host: "localhost",
+			port: Number(`${process.env.PG_PORT}` || 5432),
+		},
+		pool: { min: 0, max: 100 },
+		acquireConnectionTimeout: 10000,
+	});
+};
+
 const conn = Connect()
+
 
 //get the count of orders recieved during a given day
 app.get('/getSingleDateArrival/:date', async (request, response) => {
@@ -52,7 +70,7 @@ app.get('/getOrderAndVaccines/:date', async (request, response) => {
 		})
 })
 
-//Returns orders and doses of vaccine, ordered by vaccine manufacturer, from year start to given date
+//Returns orders and doses of vaccine, grouped by vaccine manufacturer, from year start to end of given date
 app.get('/getOrderAndVaccinesByProducer/:date', async (request, response) => {
 	const yearStart = new Date('2021-01-01T00:00:00Z')
 	const toDate = (request.params.date + 'T23:59:59Z')
@@ -70,8 +88,6 @@ app.get('/getOrderAndVaccinesByProducer/:date', async (request, response) => {
 		})
 })
 
-
-
 // How many of the vaccinations have been used?
 //joinia
 
@@ -87,9 +103,15 @@ app.get('/getOrderAndVaccinesByProducer/:date', async (request, response) => {
 // How many vaccines are going to expire in the next 10 days?
 //joinia
 
+// Most popular day of the week for vaccinations? - Seems like data that has some utility
+
+//
+
 /*
-app.get('/getBetweenDate/:date', async (request, response) => {
-	const fromDate = new Date(request.params.date)
+** vaccinations/other data between two given dates?
+**
+app.get('/getBetweenDate/:fromDate/:toDate', async (request, response) => {
+	const fromDate = new Date(request.params.fromDate)
 	const toDate = new Date(request.params.toDate)
 	console.log(toDate);
 	console.log(fromDate);
@@ -106,7 +128,6 @@ app.get('/getBetweenDate/:date', async (request, response) => {
 /**
 
 ## List of interesting things
-
 
 
 Perhaps there is some other data which could tell us some interesting things?
