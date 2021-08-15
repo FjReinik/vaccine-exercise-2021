@@ -1,13 +1,13 @@
 import './App.css';
+import React from "react"
+import { Dataview } from './view/Dataview'
 
+
+//form
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <p>
-          Live thing yeah
-        </p>
-      </header>
+      <Dataview />
     </div>
   );
 }

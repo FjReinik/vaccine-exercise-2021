@@ -6,7 +6,7 @@ const app = express()
 const port = process.env.PORT || 9000
 const conn = Connect()
 
-
+//get the count of orders recieved during a given day
 app.get('/getSingleDateArrival/:date', async (request, response) => {
 	const fromDate = (request.params.date + 'T00:00:00Z')
 	const toDate = (request.params.date + 'T23:59:59Z')
@@ -21,7 +21,20 @@ app.get('/getSingleDateArrival/:date', async (request, response) => {
 		})
 })
 
-//For given day like 2021-04-12T11:10:06
+//get the count of vaccinations done during a day
+app.get('/getSingleDateVaccination/:date', async (request, response) => {
+	const fromDate = (request.params.date + 'T00:00:00Z')
+	const toDate = (request.params.date + 'T23:59:59Z')
+	await conn.select()
+		.from('vaccine_event')
+		.whereBetween('vaccinationDate', [fromDate, toDate])
+		.then((result) => {
+			response.send(result)
+		})
+		.catch((error) => {
+			console.log(error)
+		})
+})
 
 // How many orders and vaccines have arrived total on a given day
 app.get('/getOrderAndVaccines/:date', async (request, response) => {
