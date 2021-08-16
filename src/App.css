@@ -1,5 +1,23 @@
+html, body, div, span, object, iframe,
+abbr, address, cite, code,
+del, dfn, em, img, ins, kbd, q, samp,
+small, strong, sub, sup, var,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section, summary,
+time, mark, audio, video {
+    margin:0;
+    padding:0;
+    font-size:100%;
+    vertical-align:baseline;
+    background:transparent;
+}
+
 .App {
   text-align: center;
+  background-color: #ebfcfa;
+  padding: 0 15px;
 }
 
 .App-logo {
@@ -35,4 +53,52 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.Infotable {
+  max-width: 80%;
+  margin: 0 auto;
+}
+
+.Table {
+  display: flex;
+  flex-direction: column;
+  margin: 20px 15px;
+}
+
+.TableRow {
+  display: inline-flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.TableCell {
+  padding: 5px 10px;
+  border: 1px rgb(141, 141, 141) solid;
+}
+
+.TableCell:nth-child(1){
+  width: 80%;
+}
+.TableCell:nth-child(2){
+  width: 20%;
+}
+
+
+.GraphContainer {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  max-width: 300px;
+}
+
+.GraphContainer span {
+  margin: 10px 0;
+}
+
+.GraphTable .TableRow .TableCell:nth-child(1) {
+  width: 60%;
+}
+.GraphTable .TableRow .TableCell:nth-child(2), .TableCell:nth-child(3) {
+  width: 15%;
 }

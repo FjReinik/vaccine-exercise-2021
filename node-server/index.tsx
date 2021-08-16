@@ -1,9 +1,14 @@
 import express from "express";
 import Knex from "knex";
+import Cors from "cors";
+
 
 
 const app = express()
-const port = process.env.PORT || 9000
+app.use(express.json())
+//cors needed when server is at a different port than our frontend
+app.use(Cors())
+const port = 9000
 
 //brought knex to index.tsx due to issues with compiling the require directory
 const Connect = () => {
@@ -26,13 +31,18 @@ const conn = Connect()
 
 //get the count of orders recieved during a given day
 app.get('/getSingleDateArrival/:date', async (request, response) => {
+	response.setHeader('Content-Type', 'application/json')
 	const fromDate = (request.params.date + 'T00:00:00Z')
 	const toDate = (request.params.date + 'T23:59:59Z')
-	await conn.select()
+	await conn.count({ orders_today: 'id' })
 		.from('vaccine_order')
 		.whereBetween('arrived', [fromDate, toDate])
 		.then((result) => {
-			response.send(result)
+			if (response.status(200)) {
+				response.status(200).send(result)
+			} else {
+				response.send("Error")
+			}
 		})
 		.catch((error) => {
 			console.log(error)
@@ -41,16 +51,43 @@ app.get('/getSingleDateArrival/:date', async (request, response) => {
 
 //get the count of vaccinations done during a day
 app.get('/getSingleDateVaccination/:date', async (request, response) => {
+	response.setHeader('Content-Type', 'application/json')
 	const fromDate = (request.params.date + 'T00:00:00Z')
 	const toDate = (request.params.date + 'T23:59:59Z')
-	await conn.select()
+	await conn.count({ vaccinations_today: 'vaccination-id' })
 		.from('vaccine_event')
 		.whereBetween('vaccinationDate', [fromDate, toDate])
 		.then((result) => {
-			response.send(result)
+			if (response.status(200)) {
+				response.status(200).send(result)
+
+			} else {
+				response.send("Error")
+			}
 		})
 		.catch((error) => {
 			console.log(error)
+		})
+})
+
+// How many vaccinations has been done upto date
+app.get('/getAllVaccinationsUptoDate/:date', async (request, response) => {
+	const fromDate = ('2021-01-01T00:00:00Z')
+	const toDate = (request.params.date + 'T23:59:59Z')
+	await conn.count({ vaccinations: 'vaccination-id' })
+		.from('vaccine_event')
+		.whereBetween('vaccinationDate', [fromDate, toDate])
+		.then((result) => {
+			if (response.status(200)) {
+				response.status(200).send(result)
+
+			} else {
+				response.send("Error")
+			}
+		})
+		.catch((error) => {
+			console.log(error)
+
 		})
 })
 
@@ -58,12 +95,18 @@ app.get('/getSingleDateVaccination/:date', async (request, response) => {
 app.get('/getOrderAndVaccines/:date', async (request, response) => {
 	const yearStart = new Date('2021-01-01T00:00:00Z')
 	const toDate = (request.params.date + 'T23:59:59Z')
+	console.log("fetch")
 	await conn.count({ orders: 'orderNumber' })
 		.sum({ doses: 'injections' })
 		.from('vaccine_order')
 		.whereBetween('arrived', [yearStart, toDate])
 		.then((result) => {
-			response.send(result)
+			if (response.status(200)) {
+				response.status(200).send(result)
+
+			} else {
+				response.send("Error")
+			}
 		})
 		.catch((error) => {
 			console.log(error)
@@ -81,7 +124,12 @@ app.get('/getOrderAndVaccinesByProducer/:date', async (request, response) => {
 		.groupBy('vaccine')
 		.whereBetween('arrived', [yearStart, toDate])
 		.then((result) => {
-			response.send(result)
+			if (response.status(200)) {
+				response.status(200).send(result)
+
+			} else {
+				response.send("Error")
+			}
 		})
 		.catch((error) => {
 			console.log(error)
@@ -89,23 +137,17 @@ app.get('/getOrderAndVaccinesByProducer/:date', async (request, response) => {
 })
 
 // How many of the vaccinations have been used?
-//joinia
 
 // How many bottles have expired on the given day (remember a bottle expires 30 days after arrival)
-//Joinia
 
 // How many vaccines expired before the usage -> remember to decrease used injections from the expired bottle
-//joinia
 
 // How many vaccines are left to use?
-//joinia
 
 // How many vaccines are going to expire in the next 10 days?
-//joinia
 
 // Most popular day of the week for vaccinations? - Seems like data that has some utility
-
-//
+// Most popular hour of day?
 
 /*
 ** vaccinations/other data between two given dates?
@@ -125,18 +167,6 @@ app.get('/getBetweenDate/:fromDate/:toDate', async (request, response) => {
 })
 */
 
-/**
-
-## List of interesting things
-
-
-Perhaps there is some other data which could tell us some interesting things?
-
-* Total number of orders 5000
-* Vaccinations done 7000
-* When counted from "2021-04-12T11:10:06.473587Z" 12590 vaccines expired before usage (injections in the expiring bottles 17423
-  and injections done from the expired bottles 4833)
- * **/
 
 
 app.listen(port, () => console.log(`listening on port: ${port}`))

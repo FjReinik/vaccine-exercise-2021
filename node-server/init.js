@@ -1,7 +1,6 @@
 "use strict";
-//tämän kääntmäistä typescriptiksi ei koettu tarpeelliseksi.
 Object.defineProperty(exports, "__esModule", { value: true });
-var knexfile_1 = require("./knexfile");
+var knexfile_1 = require("knex");
 var connection = knexfile_1.Connect();
 const fs = require('fs');
 const { parse } = require("path");

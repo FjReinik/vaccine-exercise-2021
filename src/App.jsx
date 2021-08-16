@@ -1,12 +1,12 @@
 import './App.css';
-import React from "react"
-import { Dataview } from './view/Dataview'
+import { Dataview } from './view/DataView'
 
 
 //form
 function App() {
   return (
     <div className="App">
+      <h1>Vaccine database exercise</h1>
       <Dataview />
     </div>
   );
