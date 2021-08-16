@@ -41,8 +41,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
 var knex_1 = __importDefault(require("knex"));
+var cors_1 = __importDefault(require("cors"));
 var app = express_1.default();
-var port = process.env.PORT || 9000;
+app.use(express_1.default.json());
+//cors needed when server is at a different port than our frontend
+app.use(cors_1.default());
+var port = 9000;
+//brought knex to index.tsx due to issues with compiling the require directory
 var Connect = function() {
     return knex_1.default({
         client: "pg",
@@ -62,19 +67,22 @@ var conn = Connect();
 app.get('/getSingleDateArrival/:date', function(request, response) {
     return __awaiter(void 0, void 0, void 0, function() {
         var fromDate, toDate;
-        return __generator(this, function(_a) {
-            switch(_a.label) {
-                case 0:
-                    fromDate = (request.params.date + 'T00:00:00Z');
-                    toDate = (request.params.date + 'T23:59:59Z');
-                    return [4 /*yield*/, conn.select()
+    return __generator(this, function(_a) {
+        switch(_a.label) {
+            case 0:
+                response.setHeader('Content-Type', 'application/json');
+                fromDate = (request.params.date + 'T00:00:00Z');
+                toDate = (request.params.date + 'T23:59:59Z');
+                return [4 /*yield*/, conn.count({ orders_today: 'id' })
                         .from('vaccine_order')
                     .whereBetween('arrived', [fromDate, toDate])
                     .then(function(result) {
-                        response.send(result);
+                        console.log(result);
+                        response.status(200).send(result);
                     })
                     .catch(function(error) {
                         console.log(error);
+                            response.status(400).send(error);
                     })];
             case 1:
                 _a.sent();
@@ -90,22 +98,50 @@ app.get('/getSingleDateVaccination/:date', function(request, response) {
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                response.setHeader('Content-Type', 'application/json');
                 fromDate = (request.params.date + 'T00:00:00Z');
                 toDate = (request.params.date + 'T23:59:59Z');
-                return [4 /*yield*/, conn.select()
+                return [4 /*yield*/, conn.count({ vaccinations_today: 'vaccination-id' })
                     .from('vaccine_event')
                     .whereBetween('vaccinationDate', [fromDate, toDate])
                     .then(function(result) {
-                        response.send(result);
+                        response.status(200).send(result);
                     })
                     .catch(function(error) {
                         console.log(error);
+                            response.status(400).send(error);
                     })];
             case 1:
                 _a.sent();
                 return [2 /*return*/];
         }
     });
+});
+});
+// How many vaccinations has been done upto date
+app.get('/getAllVaccinationsUptoDate/:date', function(request, response) {
+    return __awaiter(void 0, void 0, void 0, function() {
+        var fromDate, toDate;
+        return __generator(this, function(_a) {
+            switch(_a.label) {
+                case 0:
+                    fromDate = ('2021-01-01T00:00:00Z');
+                    toDate = (request.params.date + 'T23:59:59Z');
+                    return [4 /*yield*/, conn.count({ vaccinations: 'vaccination-id' })
+                        .from('vaccine_event')
+                        .whereBetween('vaccinationDate', [fromDate, toDate])
+                        .then(function(result) {
+                            response.status(200).send(result);
+                        })
+                        .catch(function(error) {
+                            console.log(error);
+                            response.status(400).send(error);
+                        })];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
 });
 });
 // How many orders and vaccines have arrived total on a given day
@@ -117,15 +153,17 @@ app.get('/getOrderAndVaccines/:date', function(request, response) {
             case 0:
                 yearStart = new Date('2021-01-01T00:00:00Z');
                 toDate = (request.params.date + 'T23:59:59Z');
+                console.log("fetch");
                 return [4 /*yield*/, conn.count({ orders: 'orderNumber' })
                         .sum({ doses: 'injections' })
                         .from('vaccine_order')
                         .whereBetween('arrived', [yearStart, toDate])
                     .then(function(result) {
-                        response.send(result);
+                        response.status(200).send(result);
                     })
                     .catch(function(error) {
                         console.log(error);
+                            response.status(400).send(error);
                     })];
             case 1:
                 _a.sent();
@@ -143,6 +181,7 @@ app.get('/getOrderAndVaccinesByProducer/:date', function(request, response) {
             case 0:
                 yearStart = new Date('2021-01-01T00:00:00Z');
                 toDate = (request.params.date + 'T23:59:59Z');
+                console.log("fetch");
                 return [4 /*yield*/, conn.select('vaccine')
                         .count({ orders: 'orderNumber' })
                         .sum({ doses: 'injections' })
@@ -150,10 +189,11 @@ app.get('/getOrderAndVaccinesByProducer/:date', function(request, response) {
                         .groupBy('vaccine')
                         .whereBetween('arrived', [yearStart, toDate])
                     .then(function(result) {
-                        response.send(result);
-                        })
+                        response.status(200).send(result);
+                    })
                     .catch(function(error) {
                         console.log(error);
+                            response.status(400).send(error);
                     })];
             case 1:
                 _a.sent();
@@ -162,15 +202,10 @@ app.get('/getOrderAndVaccinesByProducer/:date', function(request, response) {
     });
 }); });
 // How many of the vaccinations have been used?
-//joinia
 // How many bottles have expired on the given day (remember a bottle expires 30 days after arrival)
-//Joinia
 // How many vaccines expired before the usage -> remember to decrease used injections from the expired bottle
-//joinia
 // How many vaccines are left to use?
-//joinia
 // How many vaccines are going to expire in the next 10 days?
-//joinia
 // Most popular day of the week for vaccinations? - Seems like data that has some utility
 //
 /*
