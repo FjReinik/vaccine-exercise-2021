@@ -16,7 +16,7 @@ export const Dataview = () => {
 		event.preventDefault()
 		let aggregateData = {}
 
-		//this could be smarter - but we are going to perform all requests to our server
+		//this could be smarter ()like doing thins with a single api request and getting all the data as a single json, rather than doing it on the frontend- but we are going to perform all requests to our server
 		//cool technique, imo https://gomakethings.com/waiting-for-multiple-all-api-responses-to-complete-with-the-vanilla-js-promise.all-method/
 		Promise.all([
 			fetch(`http://localhost:9000/getSingleDateArrival/${ date }`),
@@ -34,10 +34,7 @@ export const Dataview = () => {
 					for(const i in arr) {
 						aggregateData = Object.assign(aggregateData, arr[i]);
 					}
-				} else {
-					aggregateData['dosage'] = arr
 				}
-
 			})
 			setReqdata(aggregateData)
 		}).catch(error => {

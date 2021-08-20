@@ -28,6 +28,4 @@ group by vaccine_order.injections
 
 
 
-
-
 */
