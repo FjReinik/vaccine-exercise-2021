@@ -1,14 +1,14 @@
 import './App.css';
 import { Dataview } from './view/DataView'
+import { AppWrapper } from "./baseStyle";
 
 
 //form
 function App() {
   return (
-    <div className="App">
-      <h1>Vaccine database exercise</h1>
+    <AppWrapper>
       <Dataview />
-    </div>
+    </AppWrapper>
   );
 }
 

@@ -27,8 +27,24 @@ const Connect = () => {
 };
 
 const conn = Connect()
+/*
+// what if I got all the info from a single api
+app.get('/getAllData/:date', async (request, response) => {
+	await conn.raw(`¨
+		`)
+		.then((result) => {
+			if (response.status(200)) {
+				response.status(200).json(result)
 
-
+			} else {
+				response.status(400).send("Error")
+			}
+		})
+		.catch((error) => {
+			console.log(error)
+		})
+})
+*/
 //get the count of orders recieved during a given day
 app.get('/getSingleDateArrival/:date', async (request, response) => {
 	response.setHeader('Content-Type', 'application/json')
@@ -39,9 +55,10 @@ app.get('/getSingleDateArrival/:date', async (request, response) => {
 		.whereBetween('arrived', [fromDate, toDate])
 		.then((result) => {
 			if (response.status(200)) {
-				response.status(200).send(result)
+				response.status(200).json(result[0])
 			} else {
-				response.send("Error")
+				//real helpful error message
+				response.status(400).send("Error")
 			}
 		})
 		.catch((error) => {
@@ -59,10 +76,10 @@ app.get('/getSingleDateVaccination/:date', async (request, response) => {
 		.whereBetween('vaccinationDate', [fromDate, toDate])
 		.then((result) => {
 			if (response.status(200)) {
-				response.status(200).send(result)
+				response.status(200).json(result[0])
 
 			} else {
-				response.send("Error")
+				response.status(400).send("Error")
 			}
 		})
 		.catch((error) => {
@@ -79,10 +96,10 @@ app.get('/getAllVaccinationsUptoDate/:date', async (request, response) => {
 		.whereBetween('vaccinationDate', [fromDate, toDate])
 		.then((result) => {
 			if (response.status(200)) {
-				response.status(200).send(result)
+				response.status(200).json(result[0])
 
 			} else {
-				response.send("Error")
+				response.status(400).send("Error")
 			}
 		})
 		.catch((error) => {
@@ -93,19 +110,18 @@ app.get('/getAllVaccinationsUptoDate/:date', async (request, response) => {
 
 // How many orders and vaccines have arrived total on a given day
 app.get('/getOrderAndVaccines/:date', async (request, response) => {
-	const yearStart = new Date('2021-01-01T00:00:00Z')
+	const yearStart = ('2021-01-01T00:00:00Z')
 	const toDate = (request.params.date + 'T23:59:59Z')
-	console.log("fetch")
 	await conn.count({ orders: 'orderNumber' })
 		.sum({ doses: 'injections' })
 		.from('vaccine_order')
 		.whereBetween('arrived', [yearStart, toDate])
 		.then((result) => {
 			if (response.status(200)) {
-				response.status(200).send(result)
+				response.status(200).json(result[0])
 
 			} else {
-				response.send("Error")
+				response.status(400).send("Error")
 			}
 		})
 		.catch((error) => {
@@ -115,7 +131,7 @@ app.get('/getOrderAndVaccines/:date', async (request, response) => {
 
 //Returns orders and doses of vaccine, grouped by vaccine manufacturer, from year start to end of given date
 app.get('/getOrderAndVaccinesByProducer/:date', async (request, response) => {
-	const yearStart = new Date('2021-01-01T00:00:00Z')
+	const yearStart = ('2021-01-01T00:00:00Z')
 	const toDate = (request.params.date + 'T23:59:59Z')
 	await conn.select('vaccine')
 		.count({ orders: 'orderNumber' })
@@ -125,10 +141,10 @@ app.get('/getOrderAndVaccinesByProducer/:date', async (request, response) => {
 		.whereBetween('arrived', [yearStart, toDate])
 		.then((result) => {
 			if (response.status(200)) {
-				response.status(200).send(result)
+				response.status(200).json({ 'dosage': result })
 
 			} else {
-				response.send("Error")
+				response.status(400).send("Error")
 			}
 		})
 		.catch((error) => {
@@ -139,38 +155,29 @@ app.get('/getOrderAndVaccinesByProducer/:date', async (request, response) => {
 
 // How many bottles have expired on the given day (remember a bottle expires 30 days after arrival)
 app.get('/getExpiredToday/:date', async (request, response) => {
-	const dayStart = (Date.parse(request.params.date) - 30 + 'T00:00:00Z')
-	const dayEnd = (Date.parse(request.params.date) - 30 + 'T23:59:59Z')
+	const dayStart: Date = new Date(request.params.date + ' 00:00:00')
+	const dayEnd: Date = new Date(request.params.date + ' 23:59:59Z')
 	await conn.count({ expired_today: 'injections' })
 		.from('vaccine_order')
-		.groupBy('vaccine')
 		.whereBetween('arrived', [dayStart, dayEnd])
 		.then((result) => {
 			if (response.status(200)) {
-				response.status(200).send(result)
+				response.status(200).json(result[0])
 
 			} else {
-				response.send("Error")
+				response.status(400).send("Error")
 			}
 		})
 		.catch((error) => {
 			console.log(error)
 		})
 })
-/*
-select count(vaccine_order.id) as expired_today
-,vaccine_order.vaccine
-from vaccine_order
-where vaccine_order.arrived  between '2021-03-20T00:00:00Z'::timestamp - interval '30 day' and '2021-03-20T23:59:59Z'::timestamp::timestamp - interval '30 day'
-GROUP by vaccine_order.injections
-, vaccine_order.vaccine
-*/
-
 
 // How many vaccines expired before the usage -> remember to decrease used injections from the expired bottle
+//When counted from "2021-04-12T11:10:06.473587Z" 12590 vaccines expired before usage (injections in the expiring bottles 17423 and injections done from the expired bottles 4833)
 
 app.get('/getExpiredWithoutUse/:date', async (request, response) => {
-	const timeEnd = (request.params.date + 'T23:59:59Z')
+	const timeEnd = new Date(request.params.date + ' 23:59:59Z')
 	await conn.raw(`
 		select sum(injections)
 			- (select count(*)
@@ -178,18 +185,18 @@ app.get('/getExpiredWithoutUse/:date', async (request, response) => {
 				inner JOIN vaccine_order
 				on vaccine_order.id = vaccine_event."sourceBottle"
 				where vaccine_order.arrived
-				between '2021-01-01T00:00:00Z'::timestamp and '${timeEnd}'::timestamp - interval '30 day') as wasted_doses
+				between '2021-01-01T00:00:00Z'::timestamp and '${timeEnd.toISOString()}'::timestamp - interval '30 day') as wasted_doses
 		from vaccine_order
 		where vaccine_order.arrived
 		between '2021-01-01T00:00:00Z'::timestamp
-		and '${timeEnd}'::timestamp - interval '30 day'
+		and '${timeEnd.toISOString()}'::timestamp - interval '30 day'
 	`)
 		.then((result) => {
 			if (response.status(200)) {
-				response.status(200).send(result)
+				response.status(200).json(result.rows[0])
 
 			} else {
-				response.send("Error")
+				response.status(400).send("Error")
 			}
 		})
 		.catch((error) => {
@@ -201,21 +208,24 @@ app.get('/getExpiredWithoutUse/:date', async (request, response) => {
 // Done with raw string as knex doesn't seem to support calculating. It could be done in two sets but already done in sql, so here it goes
 
 app.get('/getLeftToUse/:date', async (request, response) => {
-	const timeStart = (Date.parse(request.params.date) + 'T23:59:59Z')
+	const timeEnd = new Date(request.params.date + ' 23:59:59Z')
 	await conn.raw(`
-		select (sum(injections) - count(vaccine_event."vaccination-id")) as useable_doses
-		, vaccine as manufacturer
-		from vaccine_order RIGHT JOIN vaccine_event on vaccine_order.id = vaccine_event."sourceBottle"
-		where vaccine_order.arrived between '${timeStart}'::timestamp - interval '30 day' and '${timeStart}'::timestamp
-		GROUP by vaccine_order.injections
-		, vaccine_order.vaccine
+		select sum(injections) - (select count(*)
+				from vaccine_event
+				inner JOIN vaccine_order
+				on vaccine_order.id = vaccine_event."sourceBottle"
+				where vaccine_order.arrived
+				between '${timeEnd.toISOString()}'::timestamp - interval '30 day' 
+				and '${timeEnd.toISOString()}'::timestamp) as usable_doses
+		from vaccine_order
+		where vaccine_order.arrived between '${timeEnd.toISOString()}'::timestamp - interval '30 day' and '${timeEnd.toISOString()}'::timestamp
 	`)
 		.then((result) => {
 			if (response.status(200)) {
-				response.status(200).send(result)
+				response.status(200).json(result.rows[0])
 
 			} else {
-				response.send("Error")
+				response.status(400).send("Error")
 			}
 		})
 		.catch((error) => {
@@ -226,21 +236,21 @@ app.get('/getLeftToUse/:date', async (request, response) => {
 // How many vaccines are going to expire in the next 10 days? sum of injections
 
 app.get('/getExpiresSoon/:date', async (request, response) => {
-	const timeStart = (Date.parse(request.params.date) + 'T23:59:59Z')
+	const time = new Date(request.params.date + ' 23:59:59Z')
 	await conn.raw(`
-		select (sum(injections) - count(vaccine_event."vaccination-id")) as useable_doses
+		select (sum(injections) - count(vaccine_event."vaccination-id")) as available
 		, vaccine as manufacturer
 		from vaccine_order RIGHT JOIN vaccine_event on vaccine_order.id = vaccine_event."sourceBottle"
-		where vaccine_order.arrived between '${timeStart}'::timestamp - interval '30 day' and '${timeStart}'::timestamp -interval '20 day'
+		where vaccine_order.arrived between '${time.toISOString()}'::timestamp - interval '30 day' and '${time.toISOString()}'::timestamp -interval '20 day'
 		GROUP by vaccine_order.injections
 		, vaccine_order.vaccine
 	`)
 		.then((result) => {
 			if (response.status(200)) {
-				response.status(200).send(result)
+				response.status(200).json({ 'expiring_soon': result.rows })
 
 			} else {
-				response.send("Error")
+				response.status(400).send("Error")
 			}
 		})
 		.catch((error) => {
@@ -251,7 +261,7 @@ app.get('/getExpiresSoon/:date', async (request, response) => {
 // Most popular day of the week for vaccinations? - Seems like data that has some utility
 
 app.get('/getDayOfTheWeek/:date', async (request, response) => {
-	const day = (Date.parse(request.params.date) - 30 + 'T00:00:00Z')
+	const time = request.params.date + 'T00:00:00Z'
 	await conn.raw(`
 		select count(daylist.day) day_count, day
 		from (
@@ -259,7 +269,7 @@ app.get('/getDayOfTheWeek/:date', async (request, response) => {
 			from vaccine_event."vaccinationDate")
 			as day
 			from vaccine_event
-			where vaccine_event."vaccinationDate"  between '${day}'::timestamp and '${day}'::timestamp
+			where vaccine_event."vaccinationDate"  between '2021-01-01T00:00:00'::timestamp and '${time}'::timestamp
 			group by vaccine_event."vaccinationDate"
 		) as daylist
 		group by day
@@ -267,10 +277,10 @@ app.get('/getDayOfTheWeek/:date', async (request, response) => {
 		`)
 		.then((result) => {
 			if (response.status(200)) {
-				response.status(200).send(result)
+				response.status(200).json({ 'popular_days': result.rows })
 
 			} else {
-				response.send("Error")
+				response.status(400).send("Error")
 			}
 		})
 		.catch((error) => {
@@ -281,25 +291,26 @@ app.get('/getDayOfTheWeek/:date', async (request, response) => {
 
 // vaccinations done by healthcare district
 app.get('/getVaccinationsByHCD/:date', async (request, response) => {
-	const timeEnd = (Date.parse(request.params.date) + 'T00:00:00Z')
-	await conn.raw(`¨
-		select count(vaccine_event."vaccination-id"), "healthCareDistrict"
+	const timeEnd = new Date(request.params.date + 'T00:00:00Z')
+	await conn.raw(`
+		select count(vaccine_event."vaccination-id") as vaccinations, "healthCareDistrict"
 		from vaccine_event inner join vaccine_order on "sourceBottle" = vaccine_order.id
-		where vaccine_event."vaccinationDate"  between '2021-01-01T00:00:00Z'::timestamp and '${timeEnd}'::timestamp
+		where vaccine_event."vaccinationDate"  between '2021-01-01T00:00:00Z'::timestamp and '${timeEnd.toISOString()}'::timestamp
 		group by vaccine_order."healthCareDistrict"
 		`)
 		.then((result) => {
 			if (response.status(200)) {
-				response.status(200).send(result)
+				response.status(200).json({ 'vaccinations_by_HCD': result.rows })
 
 			} else {
-				response.send("Error")
+				response.status(400).send("Error")
 			}
 		})
 		.catch((error) => {
 			console.log(error)
 		})
 })
+
 
 //TODO maybe
 /*

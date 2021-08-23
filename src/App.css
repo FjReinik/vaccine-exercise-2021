@@ -15,9 +15,7 @@ time, mark, audio, video {
 }
 
 .App {
-  text-align: center;
-  background-color: #ebfcfa;
-  padding: 0 15px;
+ 
 }
 
 .App-logo {
@@ -25,15 +23,9 @@ time, mark, audio, video {
   pointer-events: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -101,4 +93,9 @@ time, mark, audio, video {
 }
 .GraphTable .TableRow .TableCell:nth-child(2), .TableCell:nth-child(3) {
   width: 15%;
+}
+
+h1, h2, h3 h4 {
+    margin: 0;
+    padding: 2em 0;
 }
