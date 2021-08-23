@@ -8,8 +8,4 @@ then needs only a node instance for api calls (yarn/npm start in node-server fol
 
 Then another yarn/npm start at the root level
 
-
-Testing and frontend were left to the wayside, as setting up the database and backend was more time consuming as initally thought.
-
-Initally started the project with typescript, but jettisoned that midway, as I didn't feel it contribute enough when taking account to my comfort with it.
-
+This is an updated version - worked on after 15.8 as I wasn't happy with the results that I managed to send at that time. The state of which is stored in another branch. This however should be more representative of my competence.
